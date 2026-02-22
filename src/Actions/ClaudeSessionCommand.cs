@@ -19,6 +19,7 @@ namespace Loupedeck.ClaudeConsolePlugin
             }
         }
 
+        // GetCommandImage receives SDK-assigned GUIDs; map them to sequential slots
         private Int32 ResolveSlot(String actionParameter)
         {
             if (String.IsNullOrEmpty(actionParameter))
@@ -41,9 +42,20 @@ namespace Loupedeck.ClaudeConsolePlugin
             return slot;
         }
 
+        // RunCommand receives the original "0"-"8" parameter names
+        private static Int32 ParseSlot(String actionParameter)
+        {
+            if (Int32.TryParse(actionParameter, out var slot) && slot >= 0 && slot < MaxSlots)
+            {
+                return slot;
+            }
+
+            return -1;
+        }
+
         protected override void RunCommand(String actionParameter)
         {
-            var slot = this.ResolveSlot(actionParameter);
+            var slot = ParseSlot(actionParameter);
             if (slot < 0)
             {
                 return;

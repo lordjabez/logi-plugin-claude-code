@@ -18,10 +18,10 @@ Building automatically links the plugin into the Logi Plugin Service and trigger
 
 The plugin runs inside the Logi Plugin Service process. It follows the standard Loupedeck plugin structure:
 
-- **ClaudeConsolePlugin.cs** - Plugin entry point. Creates a `SessionStore` and starts a 2-second poll timer. When sessions change, notifies the command to re-render button images.
-- **ClaudeSessionCommand.cs** - Dynamic command with 9 parameterized slots. Each slot is an assignable action in Options+. Renders colored backgrounds with session name/state text. Button press focuses the terminal session.
-- **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes. Maintains slot stability: sessions keep their assigned slot until they disappear.
-- **ITermFocus.cs** - Focuses a terminal session. Uses tmux `select-pane` when a tmux target is available, falls back to iTerm2 AppleScript via `osascript`.
+- **ClaudeConsolePlugin.cs** - Plugin entry point. Creates a `SessionStore` and starts a 2-second poll timer. Notifies the command to re-render button images each tick.
+- **ClaudeSessionCommand.cs** - Dynamic command with 9 parameterized slots. Each slot is an assignable action in Options+. Renders colored backgrounds with session name/state text. Button press focuses the terminal via iTerm AppleScript. Note: the SDK passes different parameter formats to `GetCommandImage` (GUIDs) vs `RunCommand` (original "0"-"8" names), so slot resolution uses two different methods.
+- **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes, ordered by name. Slots are reassigned from scratch each poll.
+- **ITermFocus.cs** - Focuses a terminal session by matching the client tty to an iTerm session via AppleScript (`osascript`). Note: the AppleScript application name is `"iTerm"`, not `"iTerm2"`.
 - **PluginLog.cs** - SDK helper wrapper for logging.
 
 Data flow: claude-status DB -> SessionStore.Poll() -> ClaudeSessionCommand.GetCommandImage() -> Options+ button display
@@ -44,7 +44,7 @@ src/
   ClaudeConsoleApplication.cs          # Required SDK application stub
   Actions/ClaudeSessionCommand.cs      # Button command (9 slots)
   Helpers/SessionStore.cs              # SQLite poller + slot assignment
-  Helpers/ITermFocus.cs                # Terminal focus (tmux/iTerm2)
+  Helpers/ITermFocus.cs                # Terminal focus (iTerm AppleScript)
   Helpers/PluginLog.cs                 # Logging wrapper
   package/metadata/LoupedeckPackage.yaml
   package/metadata/Icon256x256.png
@@ -65,6 +65,7 @@ dotnet test                        # xUnit tests
 
 ## Notes
 
-- macOS-only due to iTerm2 AppleScript and tmux integration
+- macOS-only due to iTerm AppleScript integration
 - The SQLite database is external (written by claude-status daemon); this plugin only reads it
 - Requires Options+ running with MX Creative Console connected
+- Plugin logs to `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/ClaudeConsole.log`

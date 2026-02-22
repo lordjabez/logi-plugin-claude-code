@@ -60,6 +60,14 @@ dotnet test
 
 Tests use xUnit and live in the `tests/` directory. Integration tests create temporary SQLite databases that are cleaned up automatically.
 
+### Logs
+
+The plugin logs to the Logi Plugin Service log directory:
+
+```bash
+tail -f ~/Library/Application\ Support/Logi/LogiPluginService/Logs/plugin_logs/ClaudeConsole.log
+```
+
 ## How It Works
 
 The plugin polls `~/.claude/claude-status.db` (written by the claude-status daemon) every 2 seconds. It joins the `sessions` and `runtime` tables to get session names, states, and terminal info for sessions active in the last 5 minutes. Up to 9 sessions are assigned to stable button slots with color-coded backgrounds.

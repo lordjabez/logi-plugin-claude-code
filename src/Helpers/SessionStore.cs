@@ -3,7 +3,6 @@ namespace Loupedeck.ClaudeConsolePlugin
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using Microsoft.Data.Sqlite;
 
     internal class SessionInfo
@@ -22,7 +21,7 @@ namespace Loupedeck.ClaudeConsolePlugin
 
         private readonly String _dbPath;
         private readonly SessionInfo[] _slots = new SessionInfo[MaxSlots];
-        private readonly Dictionary<String, Int32> _sessionSlots = new Dictionary<String, Int32>();
+
         public SessionStore(String dbPath = null)
         {
             this._dbPath = dbPath ?? Path.Combine(
@@ -87,7 +86,7 @@ namespace Loupedeck.ClaudeConsolePlugin
                 FROM sessions s
                 JOIN runtime r ON s.session_id = r.session_id
                 WHERE r.updated_at > datetime('now', '-5 minutes')
-                ORDER BY r.updated_at DESC
+                ORDER BY name
                 LIMIT 9";
 
             using var reader = cmd.ExecuteReader();
@@ -109,50 +108,11 @@ namespace Loupedeck.ClaudeConsolePlugin
 
         internal SessionInfo[] Slots => this._slots;
 
-        internal IReadOnlyDictionary<String, Int32> SessionSlots => this._sessionSlots;
-
         internal void AssignSlots(List<SessionInfo> sessions)
         {
-            var currentIds = new HashSet<String>(sessions.Select(s => s.SessionId));
-
-            // Remove sessions that are no longer present
-            var toRemove = this._sessionSlots
-                .Where(kv => !currentIds.Contains(kv.Key))
-                .Select(kv => kv.Key)
-                .ToList();
-            foreach (var id in toRemove)
+            for (var i = 0; i < MaxSlots; i++)
             {
-                var slot = this._sessionSlots[id];
-                this._slots[slot] = null;
-                this._sessionSlots.Remove(id);
-            }
-
-            // Update existing and assign new sessions
-            foreach (var session in sessions)
-            {
-                if (this._sessionSlots.TryGetValue(session.SessionId, out var existingSlot))
-                {
-                    this._slots[existingSlot] = session;
-                }
-                else
-                {
-                    // Find first empty slot
-                    var emptySlot = -1;
-                    for (var i = 0; i < MaxSlots; i++)
-                    {
-                        if (this._slots[i] == null)
-                        {
-                            emptySlot = i;
-                            break;
-                        }
-                    }
-
-                    if (emptySlot >= 0)
-                    {
-                        this._slots[emptySlot] = session;
-                        this._sessionSlots[session.SessionId] = emptySlot;
-                    }
-                }
+                this._slots[i] = i < sessions.Count ? sessions[i] : null;
             }
         }
     }

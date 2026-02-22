@@ -1,54 +1,37 @@
 namespace Loupedeck.ClaudeConsolePlugin.Tests
 {
     using System;
+    using System.Linq;
     using Xunit;
 
     public class ITermFocusTests
     {
         [Fact]
-        public void BuildTmuxStartInfo_SetsCorrectFileName()
-        {
-            var info = ITermFocus.BuildTmuxStartInfo("mysession:0.1");
-            Assert.Equal("tmux", info.FileName);
-        }
-
-        [Fact]
-        public void BuildTmuxStartInfo_ContainsSelectWindowAndPane()
-        {
-            var info = ITermFocus.BuildTmuxStartInfo("mysession:0.1");
-            Assert.Contains("select-window -t mysession:0.1", info.Arguments);
-            Assert.Contains("select-pane -t mysession:0.1", info.Arguments);
-        }
-
-        [Fact]
-        public void BuildTmuxStartInfo_RedirectsOutput()
-        {
-            var info = ITermFocus.BuildTmuxStartInfo("s:0");
-            Assert.False(info.UseShellExecute);
-            Assert.True(info.RedirectStandardOutput);
-            Assert.True(info.RedirectStandardError);
-            Assert.True(info.CreateNoWindow);
-        }
-
-        [Fact]
-        public void BuildITermStartInfo_SetsOsascript()
+        public void BuildITermStartInfo_UsesOsascript()
         {
             var info = ITermFocus.BuildITermStartInfo("ttys001");
             Assert.Equal("osascript", info.FileName);
         }
 
         [Fact]
-        public void BuildITermStartInfo_ContainsTtyInScript()
+        public void BuildITermStartInfo_PassesScriptAsSingleArgument()
         {
             var info = ITermFocus.BuildITermStartInfo("ttys042");
-            Assert.Contains("/dev/ttys042", info.Arguments);
+            var args = info.ArgumentList.ToList();
+
+            Assert.Equal(2, args.Count);
+            Assert.Equal("-e", args[0]);
+            Assert.Contains("/dev/ttys042", args[1]);
         }
 
         [Fact]
-        public void BuildITermStartInfo_ContainsITerm2Reference()
+        public void BuildITermStartInfo_ReferencesITerm()
         {
             var info = ITermFocus.BuildITermStartInfo("ttys001");
-            Assert.Contains("iTerm2", info.Arguments);
+            var script = info.ArgumentList.ToList()[1];
+
+            Assert.Contains("\"iTerm\"", script);
+            Assert.Contains("activate", script);
         }
 
         [Fact]
