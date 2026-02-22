@@ -67,12 +67,6 @@ namespace Loupedeck.ClaudeConsolePlugin
         {
             try
             {
-                var parts = tmuxTarget.Split(':');
-                if (parts.Length < 2)
-                {
-                    return;
-                }
-
                 var process = new Process
                 {
                     StartInfo = BuildTmuxStartInfo(tmuxTarget),

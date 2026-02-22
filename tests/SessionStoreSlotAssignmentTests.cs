@@ -5,7 +5,7 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
     using System.Linq;
     using Xunit;
 
-    public class SessionStoreSlotAssignmentTests : IDisposable
+    public class SessionStoreSlotAssignmentTests
     {
         private readonly SessionStore _store;
 
@@ -13,11 +13,6 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
         {
             // Use a non-existent path so Poll() is never called; we test AssignSlots directly
             this._store = new SessionStore(dbPath: "/dev/null/nonexistent");
-        }
-
-        public void Dispose()
-        {
-            this._store.Dispose();
         }
 
         private static SessionInfo MakeSession(String id, String state = "idle")
@@ -109,14 +104,11 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
         }
 
         [Fact]
-        public void StateChangeIsDetected()
+        public void StateChangeUpdatesSlot()
         {
             this._store.AssignSlots(new List<SessionInfo> { MakeSession("a", "idle") });
-            _ = this._store.HasChanged; // consume
-
             this._store.AssignSlots(new List<SessionInfo> { MakeSession("a", "active") });
 
-            Assert.True(this._store.HasChanged);
             Assert.Equal("active", this._store.Slots[0].State);
         }
 
@@ -130,7 +122,6 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
             this._store.AssignSlots(sessions);
 
             Assert.Equal(9, this._store.SessionSlots.Count);
-            // Slots 0-8 filled, extras dropped
             for (var i = 0; i < 9; i++)
             {
                 Assert.NotNull(this._store.Slots[i]);

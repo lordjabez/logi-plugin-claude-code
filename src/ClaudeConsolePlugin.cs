@@ -14,7 +14,6 @@ namespace Loupedeck.ClaudeConsolePlugin
         public ClaudeConsolePlugin()
         {
             PluginLog.Init(this.Log);
-            PluginResources.Init(this.Assembly);
         }
 
         public override void Load()
@@ -27,7 +26,6 @@ namespace Loupedeck.ClaudeConsolePlugin
         {
             this._pollTimer?.Dispose();
             this._pollTimer = null;
-            this._store?.Dispose();
             this._store = null;
         }
 

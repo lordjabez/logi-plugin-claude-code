@@ -16,31 +16,19 @@ namespace Loupedeck.ClaudeConsolePlugin
         public String State { get; set; }
     }
 
-    internal class SessionStore : IDisposable
+    internal class SessionStore
     {
         private const Int32 MaxSlots = 9;
 
         private readonly String _dbPath;
         private readonly SessionInfo[] _slots = new SessionInfo[MaxSlots];
         private readonly Dictionary<String, Int32> _sessionSlots = new Dictionary<String, Int32>();
-        private Boolean _hasChanged;
-
         public SessionStore(String dbPath = null)
         {
             this._dbPath = dbPath ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 ".claude",
                 "claude-status.db");
-        }
-
-        public Boolean HasChanged
-        {
-            get
-            {
-                var val = this._hasChanged;
-                this._hasChanged = false;
-                return val;
-            }
         }
 
         public SessionInfo GetSession(Int32 slot)
@@ -126,7 +114,6 @@ namespace Loupedeck.ClaudeConsolePlugin
         internal void AssignSlots(List<SessionInfo> sessions)
         {
             var currentIds = new HashSet<String>(sessions.Select(s => s.SessionId));
-            var changed = false;
 
             // Remove sessions that are no longer present
             var toRemove = this._sessionSlots
@@ -138,7 +125,6 @@ namespace Loupedeck.ClaudeConsolePlugin
                 var slot = this._sessionSlots[id];
                 this._slots[slot] = null;
                 this._sessionSlots.Remove(id);
-                changed = true;
             }
 
             // Update existing and assign new sessions
@@ -146,12 +132,7 @@ namespace Loupedeck.ClaudeConsolePlugin
             {
                 if (this._sessionSlots.TryGetValue(session.SessionId, out var existingSlot))
                 {
-                    var prev = this._slots[existingSlot];
-                    if (prev == null || prev.State != session.State || prev.Name != session.Name)
-                    {
-                        this._slots[existingSlot] = session;
-                        changed = true;
-                    }
+                    this._slots[existingSlot] = session;
                 }
                 else
                 {
@@ -170,16 +151,9 @@ namespace Loupedeck.ClaudeConsolePlugin
                     {
                         this._slots[emptySlot] = session;
                         this._sessionSlots[session.SessionId] = emptySlot;
-                        changed = true;
                     }
                 }
             }
-
-            this._hasChanged = changed;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

@@ -22,7 +22,7 @@ The plugin runs inside the Logi Plugin Service process. It follows the standard 
 - **ClaudeSessionCommand.cs** - Dynamic command with 9 parameterized slots. Each slot is an assignable action in Options+. Renders colored backgrounds with session name/state text. Button press focuses the terminal session.
 - **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes. Maintains slot stability: sessions keep their assigned slot until they disappear.
 - **ITermFocus.cs** - Focuses a terminal session. Uses tmux `select-pane` when a tmux target is available, falls back to iTerm2 AppleScript via `osascript`.
-- **PluginLog.cs / PluginResources.cs** - SDK helper wrappers for logging and embedded resource access.
+- **PluginLog.cs** - SDK helper wrapper for logging.
 
 Data flow: claude-status DB -> SessionStore.Poll() -> ClaudeSessionCommand.GetCommandImage() -> Options+ button display
 
@@ -46,15 +46,25 @@ src/
   Helpers/SessionStore.cs              # SQLite poller + slot assignment
   Helpers/ITermFocus.cs                # Terminal focus (tmux/iTerm2)
   Helpers/PluginLog.cs                 # Logging wrapper
-  Helpers/PluginResources.cs           # Embedded resource loader
-  EmbeddedResources/state-*.png        # Solid color button backgrounds
   package/metadata/LoupedeckPackage.yaml
   package/metadata/Icon256x256.png
+tests/
+  ClaudeConsole.Tests.csproj           # xUnit test project
+  SessionStoreSlotAssignmentTests.cs   # Slot assignment unit tests
+  SessionStoreIntegrationTests.cs      # SQLite integration tests
+  ITermFocusTests.cs                   # ProcessStartInfo builder tests
+```
+
+## Code Quality
+
+```bash
+dotnet build                       # zero warnings (analyzers + warnings-as-errors)
+dotnet format --verify-no-changes  # editorconfig style check
+dotnet test                        # xUnit tests
 ```
 
 ## Notes
 
-- No test suite or linter configured
 - macOS-only due to iTerm2 AppleScript and tmux integration
 - The SQLite database is external (written by claude-status daemon); this plugin only reads it
 - Requires Options+ running with MX Creative Console connected

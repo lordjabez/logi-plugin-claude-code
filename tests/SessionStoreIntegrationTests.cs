@@ -19,7 +19,6 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
 
         public void Dispose()
         {
-            this._store.Dispose();
             if (File.Exists(this._dbPath))
             {
                 File.Delete(this._dbPath);
@@ -122,7 +121,6 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
             var store = new SessionStore("/nonexistent/path/claude-status.db");
             store.Poll(); // should not throw
             Assert.Null(store.GetSession(0));
-            store.Dispose();
         }
     }
 }
