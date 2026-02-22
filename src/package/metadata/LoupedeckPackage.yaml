@@ -1,0 +1,21 @@
+type: plugin4
+name: ClaudeConsole
+displayName: Claude Code Console
+description: Displays active Claude Code session status on keypad buttons.
+pluginFileName: ClaudeConsole.dll
+version: 1.0
+author: Judson Neer
+copyright: Copyright 2026 Judson Neer. All rights reserved.
+
+pluginFolderMac: bin
+
+supportedDevices:
+    - LoupedeckCtFamily
+
+minimumLoupedeckVersion: 6.0
+
+homePageUrl: https://github.com/lordjabez/claude-logi-creative-console
+supportPageUrl: https://github.com/lordjabez/claude-logi-creative-console/issues
+
+license: MIT
+licenseUrl: https://opensource.org/licenses/MIT
