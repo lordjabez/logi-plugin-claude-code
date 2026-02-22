@@ -21,44 +21,22 @@ namespace Loupedeck.ClaudeConsolePlugin
             }
         }
 
-        private static void FocusViaTmux(String tmuxTarget)
+        internal static ProcessStartInfo BuildTmuxStartInfo(String tmuxTarget)
         {
-            try
+            return new ProcessStartInfo
             {
-                var parts = tmuxTarget.Split(':');
-                if (parts.Length < 2)
-                {
-                    return;
-                }
-
-                var tmuxSession = parts[0];
-                var pane = parts[1];
-
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "tmux",
-                        Arguments = $"select-window -t {tmuxTarget} \\; select-pane -t {tmuxTarget}",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                    },
-                };
-                process.Start();
-            }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, $"Failed to focus tmux target {tmuxTarget}");
-            }
+                FileName = "tmux",
+                Arguments = $"select-window -t {tmuxTarget} \\; select-pane -t {tmuxTarget}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
         }
 
-        private static void FocusViaITerm(String tty)
+        internal static ProcessStartInfo BuildITermStartInfo(String tty)
         {
-            try
-            {
-                var script = $@"
+            var script = $@"
                     tell application ""iTerm2""
                         activate
                         repeat with w in windows
@@ -74,17 +52,46 @@ namespace Loupedeck.ClaudeConsolePlugin
                         end repeat
                     end tell";
 
+            return new ProcessStartInfo
+            {
+                FileName = "osascript",
+                Arguments = $"-e '{script}'",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+        }
+
+        private static void FocusViaTmux(String tmuxTarget)
+        {
+            try
+            {
+                var parts = tmuxTarget.Split(':');
+                if (parts.Length < 2)
+                {
+                    return;
+                }
+
                 var process = new Process
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "osascript",
-                        Arguments = $"-e '{script}'",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                    },
+                    StartInfo = BuildTmuxStartInfo(tmuxTarget),
+                };
+                process.Start();
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, $"Failed to focus tmux target {tmuxTarget}");
+            }
+        }
+
+        private static void FocusViaITerm(String tty)
+        {
+            try
+            {
+                var process = new Process
+                {
+                    StartInfo = BuildITermStartInfo(tty),
                 };
                 process.Start();
             }

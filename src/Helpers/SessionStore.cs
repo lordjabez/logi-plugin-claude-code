@@ -25,9 +25,9 @@ namespace Loupedeck.ClaudeConsolePlugin
         private readonly Dictionary<String, Int32> _sessionSlots = new Dictionary<String, Int32>();
         private Boolean _hasChanged;
 
-        public SessionStore()
+        public SessionStore(String dbPath = null)
         {
-            this._dbPath = Path.Combine(
+            this._dbPath = dbPath ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 ".claude",
                 "claude-status.db");
@@ -87,13 +87,6 @@ namespace Loupedeck.ClaudeConsolePlugin
             using var conn = new SqliteConnection(connStr);
             conn.Open();
 
-            // Enable WAL mode reading
-            using (var pragma = conn.CreateCommand())
-            {
-                pragma.CommandText = "PRAGMA journal_mode=wal";
-                pragma.ExecuteNonQuery();
-            }
-
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 SELECT
@@ -126,7 +119,11 @@ namespace Loupedeck.ClaudeConsolePlugin
             return results;
         }
 
-        private void AssignSlots(List<SessionInfo> sessions)
+        internal SessionInfo[] Slots => this._slots;
+
+        internal IReadOnlyDictionary<String, Int32> SessionSlots => this._sessionSlots;
+
+        internal void AssignSlots(List<SessionInfo> sessions)
         {
             var currentIds = new HashSet<String>(sessions.Select(s => s.SessionId));
             var changed = false;

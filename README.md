@@ -10,11 +10,10 @@ A Logi Actions SDK plugin that displays active Claude Code session status on a L
 ## Prerequisites
 
 - macOS
-- .NET 8 SDK
+- .NET 8 SDK (version pinned via `global.json`)
 - [Logitech Options+](https://www.logitech.com/software/logi-options-plus.html) with MX Creative Console connected
-- [iTerm2](https://iterm2.com/) (for button-press focus via AppleScript)
 - [claude-status-tool](https://github.com/lordjabez/claude-status-tool) daemon running (provides the session database)
-- LogiPluginTool: `dotnet tool install --global LogiPluginTool`
+- [iTerm2](https://iterm2.com/) for button-press focus via AppleScript, or [tmux](https://github.com/tmux/tmux) (preferred when Claude Code sessions run inside tmux)
 
 ## Build
 
@@ -32,6 +31,34 @@ Building automatically creates a `.link` file in the Logi Plugin Service plugins
 4. Assign "Claude Session > Slot 1" through "Slot 9" to the desired buttons
 
 Each slot automatically fills with active Claude Code sessions. Sessions keep their assigned slot across polls until they disappear, at which point the slot is freed for a new session.
+
+## Code Quality
+
+### Linting and Formatting
+
+The `.editorconfig` enforces code style conventions. Check for violations without modifying files:
+
+```bash
+dotnet format --verify-no-changes
+```
+
+Auto-fix any style drift:
+
+```bash
+dotnet format
+```
+
+### Static Analysis
+
+The project enables .NET analyzers at `latest-recommended` level with warnings treated as errors. Analysis runs automatically during `dotnet build` and will fail the build on any violation.
+
+### Tests
+
+```bash
+dotnet test
+```
+
+Tests use xUnit and live in the `tests/` directory. Integration tests create temporary SQLite databases that are cleaned up automatically.
 
 ## How It Works
 

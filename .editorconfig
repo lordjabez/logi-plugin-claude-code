@@ -1,0 +1,51 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.cs]
+# Use framework type names (String, Int32) over keywords (string, int)
+dotnet_style_predefined_type_for_locals_parameters_members = false:warning
+dotnet_style_predefined_type_for_member_access = false:warning
+
+# Require this. qualification for fields
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_property = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_event = true:warning
+
+# Using directives inside namespace
+csharp_using_directive_placement = inside_namespace:warning
+
+# Allman brace style
+csharp_new_line_before_open_brace = all
+
+# Constants: PascalCase (must come before private fields rule)
+dotnet_naming_rule.constants_should_be_pascal.severity = warning
+dotnet_naming_rule.constants_should_be_pascal.symbols = constant_fields
+dotnet_naming_rule.constants_should_be_pascal.style = pascal_case
+
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Private fields: _camelCase
+dotnet_naming_rule.private_fields_should_be_underscore_camel.severity = warning
+dotnet_naming_rule.private_fields_should_be_underscore_camel.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_underscore_camel.style = underscore_camel
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+[*.{csproj,sln,yaml,yml,json}]
+indent_size = 2

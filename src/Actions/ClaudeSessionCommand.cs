@@ -7,7 +7,7 @@ namespace Loupedeck.ClaudeConsolePlugin
     {
         private const Int32 MaxSlots = 9;
         private readonly Dictionary<String, Int32> _actionToSlot = new Dictionary<String, Int32>();
-        private Int32 _nextSlot = 0;
+        private Int32 _nextSlot;
 
         public ClaudeSessionCommand()
             : base("Claude Session", "Shows Claude Code session status", "Claude Sessions")
@@ -15,7 +15,7 @@ namespace Loupedeck.ClaudeConsolePlugin
             this.MakeProfileAction("list");
             for (var i = 0; i < MaxSlots; i++)
             {
-                this.AddParameter(i.ToString(), $"Slot {i + 1}", "Claude Sessions");
+                this.AddParameter(i.ToString(System.Globalization.CultureInfo.InvariantCulture), $"Slot {i + 1}", "Claude Sessions");
             }
         }
 
