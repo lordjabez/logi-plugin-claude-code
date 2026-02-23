@@ -6,6 +6,9 @@ namespace Loupedeck.ClaudeConsolePlugin
     public class ClaudeSessionCommand : PluginDynamicCommand
     {
         private const Int32 MaxSlots = 9;
+        private static readonly BitmapColor _workingColor = new BitmapColor(0xCC, 0x33, 0x33);
+        private static readonly BitmapColor _waitingColor = new BitmapColor(0x33, 0x55, 0xAA);
+        private static readonly BitmapColor _idleColor = new BitmapColor(0x33, 0x33, 0x33);
         private readonly Dictionary<String, Int32> _actionToSlot = new Dictionary<String, Int32>();
         private Int32 _nextSlot;
 
@@ -96,13 +99,13 @@ namespace Loupedeck.ClaudeConsolePlugin
             switch (session.State)
             {
                 case "working":
-                    bgColor = new BitmapColor(0xCC, 0x33, 0x33);
+                    bgColor = _workingColor;
                     break;
                 case "waiting":
-                    bgColor = new BitmapColor(0x33, 0x55, 0xAA);
+                    bgColor = _waitingColor;
                     break;
                 default:
-                    bgColor = new BitmapColor(0x33, 0x33, 0x33);
+                    bgColor = _idleColor;
                     break;
             }
 

@@ -1,0 +1,10 @@
+events:
+    - name: knock
+      displayName: Session Launched
+      description: A new Claude Code session was detected
+    - name: damp_collision
+      displayName: Session Closed
+      description: A Claude Code session has closed
+    - name: sharp_state_change
+      displayName: Session State Changed
+      description: A Claude Code session changed state

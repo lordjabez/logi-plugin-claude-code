@@ -57,11 +57,9 @@ namespace Loupedeck.ClaudeConsolePlugin
 
                 foreach (var change in this._store.LastChanges)
                 {
-                    if (_hapticWaveforms.TryGetValue(change.Kind, out var waveform))
-                    {
-                        PluginLog.Info($"Haptic: {waveform} for session {change.SessionId}");
-                        this.PluginEvents.RaiseEvent(waveform);
-                    }
+                    var waveform = _hapticWaveforms[change.Kind];
+                    PluginLog.Info($"Haptic: {waveform} for session {change.SessionId}");
+                    this.PluginEvents.RaiseEvent(waveform);
                 }
 
                 // Always notify so buttons re-render with current session data.

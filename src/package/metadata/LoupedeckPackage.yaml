@@ -12,6 +12,9 @@ pluginFolderMac: bin
 supportedDevices:
     - LoupedeckCtFamily
 
+pluginCapabilities:
+    - HasHapticMapping
+
 minimumLoupedeckVersion: 6.0
 
 homePageUrl: https://github.com/lordjabez/logi-plugin-claude-code

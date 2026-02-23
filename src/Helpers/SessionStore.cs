@@ -61,7 +61,7 @@ namespace Loupedeck.ClaudeConsolePlugin
         {
             if (!File.Exists(this._dbPath))
             {
-                PluginLog.Info($"DB not found at {this._dbPath}");
+                PluginLog.Verbose($"DB not found at {this._dbPath}");
                 return;
             }
 

@@ -1,0 +1,7 @@
+haptics:
+    knock:
+        DEFAULT: knock
+    damp_collision:
+        DEFAULT: damp_collision
+    sharp_state_change:
+        DEFAULT: sharp_state_change
