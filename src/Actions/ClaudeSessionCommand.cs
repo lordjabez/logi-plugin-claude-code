@@ -92,13 +92,22 @@ namespace Loupedeck.ClaudeConsolePlugin
                 return builder.ToImage();
             }
 
-            var bgColor = session.State == "active"
-                ? new BitmapColor(0xCC, 0x33, 0x33)
-                : new BitmapColor(0x33, 0x33, 0x33);
-            builder.Clear(bgColor);
+            BitmapColor bgColor;
+            switch (session.State)
+            {
+                case "working":
+                    bgColor = new BitmapColor(0xCC, 0x33, 0x33);
+                    break;
+                case "waiting":
+                    bgColor = new BitmapColor(0x33, 0x55, 0xAA);
+                    break;
+                default:
+                    bgColor = new BitmapColor(0x33, 0x33, 0x33);
+                    break;
+            }
 
-            var stateLabel = session.State == "active" ? "working" : "idle";
-            builder.DrawText($"{session.Name}\n{stateLabel}", new BitmapColor(255, 255, 255), 12);
+            builder.Clear(bgColor);
+            builder.DrawText($"{session.Name}\n{session.State}", new BitmapColor(255, 255, 255), 12);
 
             return builder.ToImage();
         }

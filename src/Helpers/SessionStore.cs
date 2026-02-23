@@ -5,6 +5,19 @@ namespace Loupedeck.ClaudeConsolePlugin
     using System.IO;
     using Microsoft.Data.Sqlite;
 
+    internal enum SessionChangeKind
+    {
+        Launched,
+        Closed,
+        StateChanged,
+    }
+
+    internal class SessionChange
+    {
+        public SessionChangeKind Kind { get; set; }
+        public String SessionId { get; set; }
+    }
+
     internal class SessionInfo
     {
         public String SessionId { get; set; }
@@ -21,6 +34,10 @@ namespace Loupedeck.ClaudeConsolePlugin
 
         private readonly String _dbPath;
         private readonly SessionInfo[] _slots = new SessionInfo[MaxSlots];
+        private Dictionary<String, String> _previousStates = new Dictionary<String, String>();
+        private Boolean _hasPreviousPoll;
+
+        public List<SessionChange> LastChanges { get; private set; } = new List<SessionChange>();
 
         public SessionStore(String dbPath = null)
         {
@@ -110,6 +127,44 @@ namespace Loupedeck.ClaudeConsolePlugin
 
         internal void AssignSlots(List<SessionInfo> sessions)
         {
+            var changes = new List<SessionChange>();
+            var currentStates = new Dictionary<String, String>();
+
+            foreach (var session in sessions)
+            {
+                currentStates[session.SessionId] = session.State;
+            }
+
+            if (this._hasPreviousPoll)
+            {
+                foreach (var session in sessions)
+                {
+                    if (this._previousStates.TryGetValue(session.SessionId, out var previousState))
+                    {
+                        if (previousState != session.State)
+                        {
+                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId });
+                        }
+                    }
+                    else
+                    {
+                        changes.Add(new SessionChange { Kind = SessionChangeKind.Launched, SessionId = session.SessionId });
+                    }
+                }
+
+                foreach (var id in this._previousStates.Keys)
+                {
+                    if (!currentStates.ContainsKey(id))
+                    {
+                        changes.Add(new SessionChange { Kind = SessionChangeKind.Closed, SessionId = id });
+                    }
+                }
+            }
+
+            this._previousStates = currentStates;
+            this._hasPreviousPoll = true;
+            this.LastChanges = changes;
+
             for (var i = 0; i < MaxSlots; i++)
             {
                 this._slots[i] = i < sessions.Count ? sessions[i] : null;

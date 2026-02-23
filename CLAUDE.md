@@ -28,7 +28,7 @@ Data flow: claude-status DB -> SessionStore.Poll() -> ClaudeSessionCommand.GetCo
 
 ## Session States
 
-Two states from the `runtime` table: `active` (red background, "working" label) and `idle` (gray background, "idle" label).
+Three states from the `runtime` table: `working` (red background), `waiting` (blue background), and `idle` (gray background). Haptic feedback is triggered on the MX Master 4 when sessions change state (`sharp_state_change`), are launched (`knock`), or close (`damp_collision`).
 
 ## Key Dependencies
 
@@ -69,3 +69,4 @@ dotnet test                        # xUnit tests
 - The SQLite database is external (written by claude-status daemon); this plugin only reads it
 - Requires Options+ running with MX Creative Console connected
 - Plugin logs to `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/ClaudeConsole.log`
+- If the plugin fails to reload after a build (`plugin already loaded` error in logs), restart the service with `pkill -f LogiPluginService` (Options+ will relaunch it automatically)
