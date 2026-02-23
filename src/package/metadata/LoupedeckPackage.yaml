@@ -14,8 +14,8 @@ supportedDevices:
 
 minimumLoupedeckVersion: 6.0
 
-homePageUrl: https://github.com/lordjabez/claude-logi-creative-console
-supportPageUrl: https://github.com/lordjabez/claude-logi-creative-console/issues
+homePageUrl: https://github.com/lordjabez/logi-plugin-claude-code
+supportPageUrl: https://github.com/lordjabez/logi-plugin-claude-code/issues
 
 license: MIT
 licenseUrl: https://opensource.org/licenses/MIT
