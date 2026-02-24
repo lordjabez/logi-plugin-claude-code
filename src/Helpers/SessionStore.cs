@@ -16,6 +16,7 @@ namespace Loupedeck.ClaudeConsolePlugin
     {
         public SessionChangeKind Kind { get; set; }
         public String SessionId { get; set; }
+        public String NewState { get; set; }
     }
 
     internal class SessionInfo
@@ -38,6 +39,7 @@ namespace Loupedeck.ClaudeConsolePlugin
         private Boolean _hasPreviousPoll;
 
         public List<SessionChange> LastChanges { get; private set; } = new List<SessionChange>();
+        public Boolean HasWaitingSessions { get; private set; }
 
         public SessionStore(String dbPath = null)
         {
@@ -143,12 +145,12 @@ namespace Loupedeck.ClaudeConsolePlugin
                     {
                         if (previousState != session.State)
                         {
-                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId });
+                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId, NewState = session.State });
                         }
                     }
                     else
                     {
-                        changes.Add(new SessionChange { Kind = SessionChangeKind.Launched, SessionId = session.SessionId });
+                        changes.Add(new SessionChange { Kind = SessionChangeKind.Launched, SessionId = session.SessionId, NewState = session.State });
                     }
                 }
 
@@ -164,6 +166,7 @@ namespace Loupedeck.ClaudeConsolePlugin
             this._previousStates = currentStates;
             this._hasPreviousPoll = true;
             this.LastChanges = changes;
+            this.HasWaitingSessions = currentStates.ContainsValue("waiting");
 
             for (var i = 0; i < MaxSlots; i++)
             {
