@@ -36,6 +36,7 @@ namespace Loupedeck.ClaudeConsolePlugin
         private readonly String _dbPath;
         private readonly SessionInfo[] _slots = new SessionInfo[MaxSlots];
         private Dictionary<String, String> _previousStates = new Dictionary<String, String>();
+        private Dictionary<String, DateTime> _stateEntryTimes = new Dictionary<String, DateTime>();
         private Boolean _hasPreviousPoll;
 
         public List<SessionChange> LastChanges { get; private set; } = new List<SessionChange>();
@@ -125,7 +126,44 @@ namespace Loupedeck.ClaudeConsolePlugin
             return results;
         }
 
+        public SessionInfo GetPriorityFocusSession()
+        {
+            SessionInfo bestWaiting = null;
+            var bestWaitingTime = DateTime.MaxValue;
+            SessionInfo bestWorking = null;
+            var bestWorkingTime = DateTime.MaxValue;
+
+            for (var i = 0; i < MaxSlots; i++)
+            {
+                var session = this._slots[i];
+                if (session == null)
+                {
+                    continue;
+                }
+
+                if (!this._stateEntryTimes.TryGetValue(session.SessionId, out var entryTime))
+                {
+                    continue;
+                }
+
+                if (session.State == "waiting" && entryTime < bestWaitingTime)
+                {
+                    bestWaiting = session;
+                    bestWaitingTime = entryTime;
+                }
+                else if (session.State == "working" && entryTime < bestWorkingTime)
+                {
+                    bestWorking = session;
+                    bestWorkingTime = entryTime;
+                }
+            }
+
+            return bestWaiting ?? bestWorking;
+        }
+
         internal SessionInfo[] Slots => this._slots;
+
+        internal Dictionary<String, DateTime> StateEntryTimes => this._stateEntryTimes;
 
         internal void AssignSlots(List<SessionInfo> sessions)
         {
@@ -162,6 +200,23 @@ namespace Loupedeck.ClaudeConsolePlugin
                     }
                 }
             }
+
+            var newEntryTimes = new Dictionary<String, DateTime>();
+            foreach (var session in sessions)
+            {
+                var stateUnchanged = this._previousStates.TryGetValue(session.SessionId, out var prevState)
+                    && prevState == session.State;
+                if (stateUnchanged && this._stateEntryTimes.TryGetValue(session.SessionId, out var entryTime))
+                {
+                    newEntryTimes[session.SessionId] = entryTime;
+                }
+                else
+                {
+                    newEntryTimes[session.SessionId] = DateTime.UtcNow;
+                }
+            }
+
+            this._stateEntryTimes = newEntryTimes;
 
             this._previousStates = currentStates;
             this._hasPreviousPoll = true;

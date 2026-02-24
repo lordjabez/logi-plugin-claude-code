@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A Logi Actions SDK plugin (C#) that displays active Claude Code session status on a Logitech MX Creative Console keypad. Each session gets a button showing its name and state (working/idle) with color coding. Pressing a button focuses the corresponding terminal session.
+A Logi Actions SDK plugin (C#) that displays active Claude Code session status on a Logitech MX Creative Console keypad and MX Master 4 mouse. Each session gets a button showing its name and state (working/waiting/idle) with color coding. Pressing a button focuses the corresponding terminal session. Haptic feedback on the MX Master 4 alerts when sessions change state.
 
 ## Building
 
@@ -18,9 +18,10 @@ Building automatically links the plugin into the Logi Plugin Service and trigger
 
 The plugin runs inside the Logi Plugin Service process. It follows the standard Loupedeck plugin structure:
 
-- **ClaudeConsolePlugin.cs** - Plugin entry point. Creates a `SessionStore` and starts a 2-second poll timer. Notifies the command to re-render button images each tick.
+- **ClaudeConsolePlugin.cs** - Plugin entry point. Creates a `SessionStore`, listens for UDP triggers on port 25283, and runs a 60-second fallback poll timer. Notifies commands to re-render button images each tick. Fires haptic events on session state changes.
 - **ClaudeSessionCommand.cs** - Dynamic command with 9 parameterized slots. Each slot is an assignable action in Options+. Renders colored backgrounds with session name/state text. Button press focuses the terminal via iTerm AppleScript. Note: the SDK passes different parameter formats to `GetCommandImage` (GUIDs) vs `RunCommand` (original "0"-"8" names), so slot resolution uses two different methods.
-- **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes, ordered by name. Slots are reassigned from scratch each poll.
+- **FocusPriorityCommand.cs** - Single-button action that focuses the session most in need of attention: longest-waiting first, then longest-working. Also available as a standalone script (`scripts/focus-priority.sh`) wrapped in a `.app` bundle for Options+ mouse button assignment.
+- **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes, ordered by name. Slots are reassigned from scratch each poll. Tracks state entry times for priority focus ordering.
 - **ITermFocus.cs** - Focuses a terminal session by matching the client tty to an iTerm session via AppleScript (`osascript`). Note: the AppleScript application name is `"iTerm"`, not `"iTerm2"`.
 - **PluginLog.cs** - SDK helper wrapper for logging.
 
@@ -43,15 +44,20 @@ src/
   ClaudeConsolePlugin.cs               # Plugin entry point
   ClaudeConsoleApplication.cs          # Required SDK application stub
   Actions/ClaudeSessionCommand.cs      # Button command (9 slots)
+  Actions/FocusPriorityCommand.cs      # Priority focus (MX Master 4 button)
   Helpers/SessionStore.cs              # SQLite poller + slot assignment
   Helpers/ITermFocus.cs                # Terminal focus (iTerm AppleScript)
   Helpers/PluginLog.cs                 # Logging wrapper
   package/metadata/LoupedeckPackage.yaml
   package/metadata/Icon256x256.png
+scripts/
+  focus-priority.sh                    # Standalone focus-priority for mouse button
+  build-app.sh                         # Wraps focus-priority.sh into a .app for Options+
 tests/
   ClaudeConsole.Tests.csproj           # xUnit test project
   SessionStoreSlotAssignmentTests.cs   # Slot assignment unit tests
   SessionStoreIntegrationTests.cs      # SQLite integration tests
+  SessionStorePriorityFocusTests.cs     # Priority focus logic tests
   ITermFocusTests.cs                   # ProcessStartInfo builder tests
 ```
 

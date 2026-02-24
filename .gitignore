@@ -43,6 +43,7 @@ artifacts/
 !?*.[Cc]ache/
 
 *.lplug4
+*.app
 
 .DS_Store
 

@@ -1,11 +1,34 @@
 # Claude Code Console
 
-A Logi Actions SDK plugin that displays active Claude Code session status on a Logitech MX Creative Console keypad. Each session gets a button showing its name and current state with color coding. Pressing a button focuses the corresponding terminal session.
+A Logi Actions SDK plugin that displays active Claude Code session status on a Logitech MX Creative Console keypad and MX Master 4 mouse. Each session gets a button showing its name and current state with color coding. Pressing a button focuses the corresponding terminal session.
 
-## Session States
+## Actions
 
-- **Red** - active (Claude is working)
+### Claude Session (keypad)
+
+Nine assignable slots for the MX Creative Console keypad. Each slot displays a session's name and state with a color-coded background:
+
+- **Red** - working (Claude is generating)
+- **Blue** - waiting (Claude needs your attention)
 - **Gray** - idle
+
+Pressing a slot button focuses the corresponding terminal session.
+
+### Focus Priority (mouse button)
+
+Focuses the session most in need of attention: the first waiting session, then the first working session. Does nothing if all sessions are idle. Available two ways:
+
+- **Plugin command** (`FocusPriorityCommand`) - usable from the Creative Console keypad
+- **Standalone script** (`scripts/focus-priority.sh`) - assignable to an MX Master 4 button via Options+ "Open application", or bound to a keyboard shortcut. Uses `sqlite3` (ships with macOS) to query the session DB directly.
+
+### Haptic Feedback
+
+The plugin triggers haptic feedback on the MX Master 4 for session events:
+
+- **knock** - session launched, or a session enters the waiting state
+- **sharp_state_change** - session changes state (non-waiting transitions)
+- **damp_collision** - session closed
+- A periodic waiting reminder fires every 30 seconds while any session is in the waiting state
 
 ## Prerequisites
 
@@ -28,9 +51,16 @@ Building automatically creates a `.link` file in the Logi Plugin Service plugins
 1. Build the plugin (see above)
 2. Open Logitech Options+ and select your MX Creative Console
 3. Go to the keypad button configuration
-4. Assign "Claude Session > Slot 1" through "Slot 9" to the desired buttons
+4. Assign "Claude Session > Slot 1" through "Slot 9" to the desired keypad buttons
+5. To add focus-priority to an MX Master 4 button:
 
-Each slot automatically fills with active Claude Code sessions. Sessions keep their assigned slot across polls until they disappear, at which point the slot is freed for a new session.
+   ```bash
+   scripts/build-app.sh
+   ```
+
+   Then in Options+, select the mouse, choose a button, set it to "Open application", and pick `scripts/FocusPriority.app`
+
+Each slot automatically fills with active Claude Code sessions ordered by name. Slots are reassigned from scratch each poll cycle.
 
 ## Code Quality
 
@@ -70,6 +100,8 @@ tail -f ~/Library/Application\ Support/Logi/LogiPluginService/Logs/plugin_logs/C
 
 ## How It Works
 
-The plugin polls `~/.claude/claude-status.db` (written by the claude-status daemon) every 2 seconds. It joins the `sessions` and `runtime` tables to get session names, states, and terminal info for sessions active in the last 5 minutes. Up to 9 sessions are assigned to stable button slots with color-coded backgrounds.
+The plugin reads `~/.claude/claude-status.db` (written by the claude-status daemon). It joins the `sessions` and `runtime` tables to get session names, states, and terminal info for sessions active in the last 5 minutes. Up to 9 sessions are assigned to button slots with color-coded backgrounds.
 
-Pressing a button uses tmux (if a tmux target is available) or iTerm2 AppleScript to focus the corresponding terminal session.
+Polling is triggered two ways: a UDP packet on port 25283 (sent by the claude-status daemon on change for low latency), and a 60-second fallback timer.
+
+Pressing a keypad button uses iTerm2 AppleScript to focus the corresponding terminal session.
