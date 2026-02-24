@@ -69,6 +69,20 @@ namespace Loupedeck.ClaudeConsolePlugin
 
             builder.Clear(bgColor);
 
+            var iconColor = new BitmapColor(0xFF, 0xFF, 0xFF, 0x99);
+            var iconSize = 80;
+            var iconY = -30;
+
+            switch (session.State)
+            {
+                case "working":
+                    builder.DrawText("\u2699", 0, iconY, builder.Width, builder.Height - iconY, iconColor, iconSize, iconSize, 0);
+                    break;
+                case "waiting":
+                    builder.DrawText("?", 0, iconY, builder.Width, builder.Height - iconY, iconColor, iconSize, iconSize, 0);
+                    break;
+            }
+
             return builder.ToImage();
         }
 
