@@ -13,8 +13,7 @@ tty=$(sqlite3 "$DB" "
     FROM sessions s
     JOIN runtime r ON s.session_id = r.session_id
     WHERE r.updated_at > datetime('now', '-5 minutes')
-      AND r.state IN ('waiting', 'working')
-    ORDER BY CASE r.state WHEN 'waiting' THEN 0 ELSE 1 END,
+    ORDER BY CASE r.state WHEN 'waiting' THEN 0 WHEN 'working' THEN 1 ELSE 2 END,
              COALESCE(s.custom_title, s.slug)
     LIMIT 1
 ")
