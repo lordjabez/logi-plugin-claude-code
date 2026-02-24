@@ -6,7 +6,7 @@ A Logi Actions SDK plugin that displays active Claude Code session status on a L
 
 ### Claude Session (keypad)
 
-Nine assignable slots for the MX Creative Console keypad. Each slot displays a session's name and state with a color-coded background:
+Nine assignable slots for the MX Creative Console keypad. Each slot displays a session's name with a color-coded background:
 
 - **Red** - working (Claude is generating)
 - **Blue** - waiting (Claude needs your attention)
@@ -51,8 +51,9 @@ Building automatically creates a `.link` file in the Logi Plugin Service plugins
 1. Build the plugin (see above)
 2. Open Logitech Options+ and select your MX Creative Console
 3. Go to the keypad button configuration
-4. Assign "Claude Session > Slot 1" through "Slot 9" to the desired keypad buttons
-5. To add focus-priority to an MX Master 4 button:
+4. Assign "Claude Session > Session 1" through "Session 9" to the desired keypad buttons
+5. **Do not edit the button icon layout** (e.g. "Full Size") in Options+ after assigning. Editing the layout causes Options+ to stop forwarding image updates from the plugin.
+6. To add focus-priority to an MX Master 4 button:
 
    ```bash
    scripts/build-app.sh

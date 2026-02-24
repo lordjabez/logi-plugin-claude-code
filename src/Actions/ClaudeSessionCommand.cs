@@ -110,7 +110,7 @@ namespace Loupedeck.ClaudeConsolePlugin
             }
 
             builder.Clear(bgColor);
-            builder.DrawText($"{session.Name}\n{session.State}", new BitmapColor(255, 255, 255), 12);
+            builder.DrawText(session.Name, new BitmapColor(255, 255, 255), 16);
 
             return builder.ToImage();
         }
