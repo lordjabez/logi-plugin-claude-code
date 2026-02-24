@@ -124,7 +124,7 @@ namespace Loupedeck.ClaudeConsolePlugin
                             ? WaitingReminderWaveform
                             : _hapticWaveforms[change.Kind];
                         PluginLog.Info($"Haptic: {waveform} for session {change.SessionId}");
-                        this.PluginEvents.RaiseEvent(waveform);
+                        // RESTORE EVENTUALLY this.PluginEvents.RaiseEvent(waveform);
                     }
 
                     if (this._store.HasWaitingSessions)
@@ -136,7 +136,7 @@ namespace Loupedeck.ClaudeConsolePlugin
                         else if (this._waitingReminderTimer.Elapsed >= _waitingReminderInterval)
                         {
                             PluginLog.Info("Haptic: waiting reminder");
-                            this.PluginEvents.RaiseEvent(WaitingReminderWaveform);
+                            // RESTORE EVENTUALLY this.PluginEvents.RaiseEvent(WaitingReminderWaveform);
                             this._waitingReminderTimer.Restart();
                         }
                     }
@@ -147,9 +147,9 @@ namespace Loupedeck.ClaudeConsolePlugin
 
                     foreach (var command in this.DynamicCommands)
                     {
-                        if (command is ClaudeSessionCommand sessionCommand)
+                        if (command is ClaudeSessionSlotCommand slotCommand)
                         {
-                            sessionCommand.NotifyImageChanged();
+                            slotCommand.NotifyImageChanged();
                         }
                     }
                 }
