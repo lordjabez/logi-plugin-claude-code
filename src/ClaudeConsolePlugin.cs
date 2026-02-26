@@ -17,12 +17,7 @@ namespace Loupedeck.ClaudeConsolePlugin
         private static readonly TimeSpan _waitingReminderInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan _fallbackPollInterval = TimeSpan.FromSeconds(60);
 
-        private static readonly Dictionary<SessionChangeKind, String> _hapticWaveforms = new Dictionary<SessionChangeKind, String>
-        {
-            { SessionChangeKind.Launched, "knock" },
-            { SessionChangeKind.Closed, "damp_collision" },
-            { SessionChangeKind.StateChanged, "sharp_state_change" },
-        };
+        private const String StateChangeWaveform = "sharp_state_change";
 
         private readonly Object _pollLock = new Object();
         private readonly Stopwatch _waitingReminderTimer = new Stopwatch();
@@ -39,10 +34,8 @@ namespace Loupedeck.ClaudeConsolePlugin
 
         public override void Load()
         {
-            foreach (var waveform in _hapticWaveforms.Values)
-            {
-                this.PluginEvents.AddEvent(waveform, waveform, null);
-            }
+            this.PluginEvents.AddEvent(StateChangeWaveform, StateChangeWaveform, null);
+            this.PluginEvents.AddEvent(WaitingReminderWaveform, WaitingReminderWaveform, null);
 
             this._store = new SessionStore();
             this._running = true;
@@ -120,9 +113,24 @@ namespace Loupedeck.ClaudeConsolePlugin
 
                     foreach (var change in this._store.LastChanges)
                     {
-                        var waveform = change.Kind == SessionChangeKind.StateChanged && change.NewState == "waiting"
+                        if (change.Kind != SessionChangeKind.StateChanged)
+                        {
+                            continue;
+                        }
+
+                        var isCompletionTransition =
+                            (change.PreviousState == "working" && change.NewState == "waiting")
+                            || (change.PreviousState == "working" && change.NewState == "idle")
+                            || (change.PreviousState == "waiting" && change.NewState == "idle");
+
+                        if (!isCompletionTransition)
+                        {
+                            continue;
+                        }
+
+                        var waveform = change.NewState == "waiting"
                             ? WaitingReminderWaveform
-                            : _hapticWaveforms[change.Kind];
+                            : StateChangeWaveform;
                         PluginLog.Info($"Haptic: {waveform} for session {change.SessionId}");
                         this.PluginEvents.RaiseEvent(waveform);
                     }

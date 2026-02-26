@@ -16,6 +16,7 @@ namespace Loupedeck.ClaudeConsolePlugin
     {
         public SessionChangeKind Kind { get; set; }
         public String SessionId { get; set; }
+        public String PreviousState { get; set; }
         public String NewState { get; set; }
     }
 
@@ -183,7 +184,7 @@ namespace Loupedeck.ClaudeConsolePlugin
                     {
                         if (previousState != session.State)
                         {
-                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId, NewState = session.State });
+                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId, PreviousState = previousState, NewState = session.State });
                         }
                     }
                     else
