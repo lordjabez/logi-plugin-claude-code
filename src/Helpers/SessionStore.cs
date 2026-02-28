@@ -5,16 +5,8 @@ namespace Loupedeck.ClaudeConsolePlugin
     using System.IO;
     using Microsoft.Data.Sqlite;
 
-    internal enum SessionChangeKind
-    {
-        Launched,
-        Closed,
-        StateChanged,
-    }
-
     internal class SessionChange
     {
-        public SessionChangeKind Kind { get; set; }
         public String SessionId { get; set; }
         public String PreviousState { get; set; }
         public String NewState { get; set; }
@@ -41,7 +33,22 @@ namespace Loupedeck.ClaudeConsolePlugin
         private Boolean _hasPreviousPoll;
 
         public List<SessionChange> LastChanges { get; private set; } = new List<SessionChange>();
-        public Boolean HasWaitingSessions { get; private set; }
+
+        public Boolean HasWaitingSessions
+        {
+            get
+            {
+                for (var i = 0; i < MaxSlots; i++)
+                {
+                    if (this._slots[i]?.State == "waiting")
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         public SessionStore(String dbPath = null)
         {
@@ -180,24 +187,15 @@ namespace Loupedeck.ClaudeConsolePlugin
             {
                 foreach (var session in sessions)
                 {
-                    if (this._previousStates.TryGetValue(session.SessionId, out var previousState))
+                    if (this._previousStates.TryGetValue(session.SessionId, out var previousState)
+                        && previousState != session.State)
                     {
-                        if (previousState != session.State)
+                        changes.Add(new SessionChange
                         {
-                            changes.Add(new SessionChange { Kind = SessionChangeKind.StateChanged, SessionId = session.SessionId, PreviousState = previousState, NewState = session.State });
-                        }
-                    }
-                    else
-                    {
-                        changes.Add(new SessionChange { Kind = SessionChangeKind.Launched, SessionId = session.SessionId, NewState = session.State });
-                    }
-                }
-
-                foreach (var id in this._previousStates.Keys)
-                {
-                    if (!currentStates.ContainsKey(id))
-                    {
-                        changes.Add(new SessionChange { Kind = SessionChangeKind.Closed, SessionId = id });
+                            SessionId = session.SessionId,
+                            PreviousState = previousState,
+                            NewState = session.State,
+                        });
                     }
                 }
             }
@@ -222,7 +220,6 @@ namespace Loupedeck.ClaudeConsolePlugin
             this._previousStates = currentStates;
             this._hasPreviousPoll = true;
             this.LastChanges = changes;
-            this.HasWaitingSessions = currentStates.ContainsValue("waiting");
 
             for (var i = 0; i < MaxSlots; i++)
             {

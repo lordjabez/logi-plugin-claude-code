@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A Logi Actions SDK plugin (C#) that displays active Claude Code session status on a Logitech MX Creative Console keypad and MX Master 4 mouse. Each session gets a button with a color-coded background (red = working, blue = waiting, gray = idle) and the session name as the SDK display label. Pressing a button focuses the corresponding terminal session. Haptic feedback on the MX Master 4 alerts when sessions change state.
+A Logi Actions SDK plugin (C#) that displays active Claude Code session status on a Logitech MX Creative Console keypad and MX Master 4 mouse. Each session gets a button with a color-coded background and state icon (red + gear = working, blue + question mark = waiting, gray = idle) and the session name as the SDK display label. Pressing a button focuses the corresponding terminal session. Haptic feedback on the MX Master 4 alerts on completion transitions.
 
 ## Building
 
@@ -19,7 +19,7 @@ Building automatically links the plugin into the Logi Plugin Service and trigger
 The plugin runs inside the Logi Plugin Service process. It follows the standard Loupedeck plugin structure:
 
 - **ClaudeConsolePlugin.cs** - Plugin entry point. Creates a `SessionStore`, listens for UDP triggers on port 25283, and runs a 60-second fallback poll timer. Notifies commands to re-render button images each tick. Fires haptic events on session state changes.
-- **ClaudeSessionSlotCommand.cs** - Abstract base with 9 concrete subclasses (`ClaudeSessionSlot0Command` through `ClaudeSessionSlot8Command`), one per assignable button in Options+. Each knows its own slot index, so rendering and button press both resolve directly via `store.GetSession(slot)`. Renders color-coded backgrounds via `GetCommandImage()` and session names via `GetCommandDisplayName()`; button press focuses the terminal via iTerm AppleScript.
+- **ClaudeSessionSlotCommand.cs** - Abstract base with 9 concrete subclasses (`ClaudeSessionSlot0Command` through `ClaudeSessionSlot8Command`), one per assignable button in Options+. Each knows its own slot index, so rendering and button press both resolve directly via `store.GetSession(slot)`. Renders color-coded backgrounds with state icons (gear for working, question mark for waiting) via `GetCommandImage()` and session names via `GetCommandDisplayName()`; button press focuses the terminal via iTerm AppleScript.
 - **FocusPriorityCommand.cs** - Single-button action that focuses the session most in need of attention: longest-waiting first, then longest-working. Also available as a standalone script (`scripts/focus-priority.sh`) wrapped in a `.app` bundle for Options+ mouse button assignment.
 - **SessionStore.cs** - Opens `~/.claude/claude-status.db` (written by the claude-status daemon) read-only. Joins `sessions` and `runtime` tables for sessions updated within the last 5 minutes, ordered by name. Slots are reassigned from scratch each poll. Tracks state entry times for priority focus ordering.
 - **ITermFocus.cs** - Focuses a terminal session by matching the client tty to an iTerm session via AppleScript (`osascript`). Note: the AppleScript application name is `"iTerm"`, not `"iTerm2"`.
@@ -29,7 +29,7 @@ Data flow: claude-status DB -> SessionStore.Poll() -> ClaudeSessionSlotCommand.G
 
 ## Session States
 
-Three states from the `runtime` table: `working` (red background), `waiting` (blue background), and `idle` (gray background). Haptic feedback is triggered on the MX Master 4 when sessions change state (`sharp_state_change`), are launched (`knock`), or close (`damp_collision`).
+Three states from the `runtime` table: `working` (red background + gear icon), `waiting` (blue background + question mark icon), and `idle` (gray background, no icon). Haptic feedback fires only on completion transitions: working-to-waiting (`knock`), working-to-idle (`sharp_state_change`), and waiting-to-idle (`sharp_state_change`). A repeating `knock` reminder fires every 30 seconds while any session is waiting.
 
 ## Key Dependencies
 
@@ -54,11 +54,13 @@ scripts/
   focus-priority.sh                    # Standalone focus-priority for mouse button
   build-app.sh                         # Wraps focus-priority.sh into a .app for Options+
 tests/
-  ClaudeConsole.Tests.csproj           # xUnit test project
-  SessionStoreSlotAssignmentTests.cs   # Slot assignment unit tests
-  SessionStoreIntegrationTests.cs      # SQLite integration tests
+  ClaudeConsole.Tests.csproj            # xUnit test project
+  TestHelpers.cs                        # Shared MakeSession factory
+  SessionStoreSlotAssignmentTests.cs    # Slot assignment unit tests
+  SessionStoreChangeDetectionTests.cs   # State change detection tests
+  SessionStoreIntegrationTests.cs       # SQLite integration tests
   SessionStorePriorityFocusTests.cs     # Priority focus logic tests
-  ITermFocusTests.cs                   # ProcessStartInfo builder tests
+  ITermFocusTests.cs                    # ProcessStartInfo builder tests
 ```
 
 ## Code Quality

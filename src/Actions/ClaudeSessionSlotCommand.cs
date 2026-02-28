@@ -4,9 +4,19 @@ namespace Loupedeck.ClaudeConsolePlugin
 
     public abstract class ClaudeSessionSlotCommand : PluginDynamicCommand
     {
-        private static readonly BitmapColor _workingColor = new BitmapColor(0xCC, 0x33, 0x33);
-        private static readonly BitmapColor _waitingColor = new BitmapColor(0x33, 0x55, 0xAA);
-        private static readonly BitmapColor _idleColor = new BitmapColor(0x33, 0x33, 0x33);
+        private static readonly BitmapColor _iconColor = new BitmapColor(0xFF, 0xFF, 0xFF, 0x99);
+        private const Int32 IconSize = 80;
+        private const Int32 IconY = -30;
+
+        private static (BitmapColor Background, String Icon) GetStateStyle(String state)
+        {
+            switch (state)
+            {
+                case "working": return (new BitmapColor(0xCC, 0x33, 0x33), "\u2699");
+                case "waiting": return (new BitmapColor(0x33, 0x55, 0xAA), "?");
+                default: return (new BitmapColor(0x33, 0x33, 0x33), null);
+            }
+        }
 
         protected ClaudeSessionSlotCommand(Int32 slot)
             : base($"Session Slot {slot + 1}", $"Shows Claude Code session in slot {slot + 1}", "Claude Sessions")
@@ -53,34 +63,12 @@ namespace Loupedeck.ClaudeConsolePlugin
                 return builder.ToImage();
             }
 
-            BitmapColor bgColor;
-            switch (session.State)
-            {
-                case "working":
-                    bgColor = _workingColor;
-                    break;
-                case "waiting":
-                    bgColor = _waitingColor;
-                    break;
-                default:
-                    bgColor = _idleColor;
-                    break;
-            }
-
+            var (bgColor, icon) = GetStateStyle(session.State);
             builder.Clear(bgColor);
 
-            var iconColor = new BitmapColor(0xFF, 0xFF, 0xFF, 0x99);
-            var iconSize = 80;
-            var iconY = -30;
-
-            switch (session.State)
+            if (icon != null)
             {
-                case "working":
-                    builder.DrawText("\u2699", 0, iconY, builder.Width, builder.Height - iconY, iconColor, iconSize, iconSize, 0);
-                    break;
-                case "waiting":
-                    builder.DrawText("?", 0, iconY, builder.Width, builder.Height - iconY, iconColor, iconSize, iconSize, 0);
-                    break;
+                builder.DrawText(icon, 0, IconY, builder.Width, builder.Height - IconY, _iconColor, IconSize, IconSize, 0);
             }
 
             return builder.ToImage();

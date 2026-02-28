@@ -4,6 +4,8 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
     using System.Collections.Generic;
     using Xunit;
 
+    using static TestHelpers;
+
     public class SessionStorePriorityFocusTests
     {
         private readonly SessionStore _store;
@@ -11,19 +13,6 @@ namespace Loupedeck.ClaudeConsolePlugin.Tests
         public SessionStorePriorityFocusTests()
         {
             this._store = new SessionStore(dbPath: "/dev/null/nonexistent");
-        }
-
-        private static SessionInfo MakeSession(String id, String name = null, String state = "idle")
-        {
-            return new SessionInfo
-            {
-                SessionId = id,
-                Name = name ?? $"session-{id}",
-                ProjectPath = "/tmp",
-                Tty = "ttys000",
-                TmuxTarget = "",
-                State = state,
-            };
         }
 
         [Fact]

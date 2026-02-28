@@ -1,7 +1,6 @@
 namespace Loupedeck.ClaudeConsolePlugin
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Net;
     using System.Net.Sockets;
@@ -113,11 +112,6 @@ namespace Loupedeck.ClaudeConsolePlugin
 
                     foreach (var change in this._store.LastChanges)
                     {
-                        if (change.Kind != SessionChangeKind.StateChanged)
-                        {
-                            continue;
-                        }
-
                         var isCompletionTransition =
                             (change.PreviousState == "working" && change.NewState == "waiting")
                             || (change.PreviousState == "working" && change.NewState == "idle")
